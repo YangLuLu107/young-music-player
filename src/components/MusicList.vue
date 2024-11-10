@@ -1,5 +1,5 @@
 <template>
-  <n-split direction="horizontal" style="height: 200px" :max="0.75" :min="0.25">
+  <n-split direction="horizontal" style="height: 100%" :max="0.75" :min="0.25">
     <template #1>
       <PlayList />
     </template>
@@ -24,5 +24,11 @@
   }
   .play-list {
     width: 100px;
+  }
+  :deep(.n-split-pane-1) {
+    position: relative;
+  }
+  :deep(.n-split-pane-2)  {
+    position: relative;
   }
 </style>

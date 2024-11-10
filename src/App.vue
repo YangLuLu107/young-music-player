@@ -107,6 +107,7 @@ h1 {
 }
 
 input,
+/*
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -119,8 +120,9 @@ button {
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
+*/
 
-button {
+/*button {
   cursor: pointer;
 }
 
@@ -130,10 +132,9 @@ button:hover {
 button:active {
   border-color: #396cd8;
   background-color: #e8e8e8;
-}
+}*/
 
-input,
-button {
+input {
   outline: none;
 }
 
@@ -151,14 +152,6 @@ button {
     color: #24c8db;
   }
 
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
 }
 
 </style>
