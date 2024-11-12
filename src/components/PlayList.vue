@@ -33,7 +33,6 @@
 </template>
 <script setup lang="ts">
   import {h, onMounted, ref, reactive } from "vue";
-  import { readDir, BaseDirectory } from '@tauri-apps/plugin-fs';
   import { open } from '@tauri-apps/plugin-dialog';
   import { Store, load } from '@tauri-apps/plugin-store';
   import { NDropdown, NButton, NTree, NDivider, NIcon } from 'naive-ui';
@@ -42,13 +41,14 @@
   import { AddCircleOutline as AddIcon } from '@vicons/ionicons5'
   import { EditOutlined as EditIcon } from '@vicons/antd'
   import { Delete16Regular as DeleteIcon } from '@vicons/fluent'
+  import { invoke } from "@tauri-apps/api/core";
 
-  const store = ref<Store>();
+  let store: Store = null;
   const showDropdown = ref(false)
   const x = ref(0)
   const y = ref(0)
   const expandedKeysRef = ref<string[]>([])
-  const treeData = ref([])
+  const treeData = ref<TreeOption[]>([])
   const dropdownOptions = [
     {
       label: '新增',
@@ -67,17 +67,18 @@
     }
   ]
   onMounted(async () => {
-    store.value = await load('store.json', { autoSave: false });
-    await store.value.clear();
-    const playList = await getStoreData('play-list', store.value);
+    store = await load('store.json', { autoSave: false });
+    await store.clear();
+    const playList = await getStoreData('play-list', store);
     if (!playList) {
       treeData.value = [{
         label: '默认播放列表',
         key: '00',
         isDirectory: true,
+        path: '',
         children: []
       }];
-      await setStoreData('play-list', treeData.value, store.value);
+      await setStoreData('play-list', treeData.value, store);
     } else {
       treeData.value = playList;
     }
@@ -94,18 +95,20 @@
     if (path) {
       let root = {
         label: path.split('\\').pop(),
-        key: treeData.value.length + '0',
+        key: 0,
         isLeaf: false,
         children: []
       }
+      const result = await invoke("list_files_and_directories", { dirPath: path, initialCounter: treeData.value.slice[-1][0].key + 1});
+      console.log(result);
       // 获取用户选择的目录及所有子目录和子文件
-      root.children = await getDirChildren(path, root, treeData.value.length);
+      // root.children = await getDirChildren(path, root, treeData.value.length);
       // 保存到Store中
-      await setStoreData('all-play-list', [...treeData.value, root], store.value);
+      // await setStoreData('all-play-list', [...treeData.value, root], store);
       // 筛选数据，只获取目录
-      root.children = getDirs(root.children);
+      // root.children = getDirs(root.children);
       // 更新到目录树中
-      treeData.value.push(root);
+      treeData.value.push(result);
     }
   }
   /**
@@ -119,6 +122,8 @@
     let dir = [];
     if (path) {
       index++;
+      let split = path.split('\\'); // 去掉根目录名
+      let name = split.pop(); // 去掉根目录名
       const entries = await readDir(path);
       for (let i = 0; i < entries.length; i++) {
         let item = entries[i];
@@ -129,7 +134,7 @@
           children: null
         }
         if (item.isDirectory) {
-          child.children = await getDirChildren(path + "/" + item.name, child, index);
+          child.children = await getDirChildren(path + "\\" + item.name, child, index);
         }
         dir.push(child);
       }
@@ -303,6 +308,10 @@
   .buttons {
     width: 100%;
     height: 40px;
+  }
+  .play-list {
+    width: 100%;
+    height: calc(100% - 89px)
   }
   :deep(.n-tree .n-tree-node-switcher) {
     position: relative;
